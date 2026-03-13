@@ -25,17 +25,13 @@ impl<'a> Iterator for RecordIter<'a> {
 }
 
 impl<'a> Record<'a> {
-
     // Returns iterator over text chunks
     pub fn iter(&self) -> RecordIter<'a> {
-        RecordIter {
-            bytes: self.bytes,
-        }
+        RecordIter { bytes: self.bytes }
     }
 }
 
 impl<'a> super::Record<'a> for Record<'a> {
-
     const TYPE: isize = 16;
 
     fn parse(rdata: &'a [u8], _original: &'a [u8]) -> super::RDataResult<'a> {
@@ -53,9 +49,7 @@ impl<'a> super::Record<'a> for Record<'a> {
             }
             pos += rdlen;
         }
-        Ok(super::RData::TXT(Record {
-            bytes: rdata,
-        }))
+        Ok(super::RData::TXT(Record { bytes: rdata }))
     }
 }
 
@@ -64,13 +58,13 @@ mod test {
 
     use std::str::from_utf8;
 
-    use {Packet, Header};
-    use Opcode::*;
-    use ResponseCode::NoError;
-    use QueryType as QT;
-    use QueryClass as QC;
     use Class as C;
+    use Opcode::*;
+    use QueryClass as QC;
+    use QueryType as QT;
     use RData;
+    use ResponseCode::NoError;
+    use {Header, Packet};
 
     #[test]
     fn parse_response_multiple_strings() {
@@ -82,22 +76,25 @@ mod test {
                           \x0c\x66\x61\x63\x65\x62\x6f\x6f\x6b\x2e\x63\x6f\x6d";
 
         let packet = Packet::parse(response).unwrap();
-        assert_eq!(packet.header, Header {
-            id: 1573,
-            query: false,
-            opcode: StandardQuery,
-            authoritative: false,
-            truncated: false,
-            recursion_desired: true,
-            recursion_available: true,
-            authenticated_data: false,
-            checking_disabled: false,
-            response_code: NoError,
-            questions: 1,
-            answers: 1,
-            nameservers: 0,
-            additional: 0,
-        });
+        assert_eq!(
+            packet.header,
+            Header {
+                id: 1573,
+                query: false,
+                opcode: StandardQuery,
+                authoritative: false,
+                truncated: false,
+                recursion_desired: true,
+                recursion_available: true,
+                authenticated_data: false,
+                checking_disabled: false,
+                response_code: NoError,
+                questions: 1,
+                answers: 1,
+                nameservers: 0,
+                additional: 0,
+            }
+        );
         assert_eq!(packet.questions.len(), 1);
         assert_eq!(packet.questions[0].qtype, QT::TXT);
         assert_eq!(packet.questions[0].qclass, QC::IN);
@@ -109,15 +106,22 @@ mod test {
         assert_eq!(packet.answers[0].ttl, 86333);
         match packet.answers[0].data {
             RData::TXT(ref text) => {
-                assert_eq!(text.iter()
-                    .map(|x| from_utf8(x).unwrap())
-                    .collect::<Vec<_>>()
-                    .concat(), "v=spf1 redirect=_spf.facebook.com");
+                assert_eq!(
+                    text.iter()
+                        .map(|x| from_utf8(x).unwrap())
+                        .collect::<Vec<_>>()
+                        .concat(),
+                    "v=spf1 redirect=_spf.facebook.com"
+                );
 
                 // also assert boundaries are kept
-                assert_eq!(text.iter().collect::<Vec<_>>(),
-                    ["v=spf1 redirect=_spf.".as_bytes(),
-                     "facebook.com".as_bytes()]);
+                assert_eq!(
+                    text.iter().collect::<Vec<_>>(),
+                    [
+                        "v=spf1 redirect=_spf.".as_bytes(),
+                        "facebook.com".as_bytes()
+                    ]
+                );
             }
             ref x => panic!("Wrong rdata {:?}", x),
         }

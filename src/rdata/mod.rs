@@ -26,7 +26,7 @@ pub mod srv;
 pub mod txt;
 pub mod wks;
 
-use {Type, Error};
+use {Error, Type};
 
 pub use self::a::Record as A;
 pub use self::aaaa::Record as Aaaa;
@@ -58,7 +58,7 @@ pub enum RData<'a> {
     Unknown(Type, &'a [u8]),
 }
 
-pub (crate) trait Record<'a> {
+pub(crate) trait Record<'a> {
     const TYPE: isize;
 
     fn parse(rdata: &'a [u8], original: &'a [u8]) -> RDataResult<'a>;
@@ -68,16 +68,16 @@ impl<'a> RData<'a> {
     /// Parse an RR data and return RData enumeration
     pub fn parse(typ: Type, rdata: &'a [u8], original: &'a [u8]) -> RDataResult<'a> {
         match typ {
-            Type::A         => A::parse(rdata, original),
-            Type::AAAA      => Aaaa::parse(rdata, original),
-            Type::CNAME     => Cname::parse(rdata, original),
-            Type::NS        => Ns::parse(rdata, original),
-            Type::MX        => Mx::parse(rdata, original),
-            Type::PTR       => Ptr::parse(rdata, original),
-            Type::SOA       => Soa::parse(rdata, original),
-            Type::SRV       => Srv::parse(rdata, original),
-            Type::TXT       => Txt::parse(rdata, original),
-            _               => Ok(RData::Unknown(typ, rdata)),
+            Type::A => A::parse(rdata, original),
+            Type::AAAA => Aaaa::parse(rdata, original),
+            Type::CNAME => Cname::parse(rdata, original),
+            Type::NS => Ns::parse(rdata, original),
+            Type::MX => Mx::parse(rdata, original),
+            Type::PTR => Ptr::parse(rdata, original),
+            Type::SOA => Soa::parse(rdata, original),
+            Type::SRV => Srv::parse(rdata, original),
+            Type::TXT => Txt::parse(rdata, original),
+            _ => Ok(RData::Unknown(typ, rdata)),
         }
     }
 
@@ -86,15 +86,15 @@ impl<'a> RData<'a> {
     /// Code can be converted to an integer `packet.type_code() as isize`
     pub fn type_code(self) -> Type {
         match self {
-            RData::A(..)         => Type::A,
-            RData::AAAA(..)      => Type::AAAA,
-            RData::CNAME(..)     => Type::CNAME,
-            RData::NS(..)        => Type::NS,
-            RData::MX(..)        => Type::MX,
-            RData::PTR(..)       => Type::PTR,
-            RData::SOA(..)       => Type::SOA,
-            RData::SRV(..)       => Type::SRV,
-            RData::TXT(..)       => Type::TXT,
+            RData::A(..) => Type::A,
+            RData::AAAA(..) => Type::AAAA,
+            RData::CNAME(..) => Type::CNAME,
+            RData::NS(..) => Type::NS,
+            RData::MX(..) => Type::MX,
+            RData::PTR(..) => Type::PTR,
+            RData::SOA(..) => Type::SOA,
+            RData::SRV(..) => Type::SRV,
+            RData::TXT(..) => Type::TXT,
             RData::Unknown(t, _) => t,
         }
     }

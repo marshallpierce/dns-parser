@@ -11,7 +11,6 @@ impl<'a> ToString for Record<'a> {
 }
 
 impl<'a> super::Record<'a> for Record<'a> {
-
     const TYPE: isize = 5;
 
     fn parse(rdata: &'a [u8], original: &'a [u8]) -> super::RDataResult<'a> {
@@ -25,13 +24,13 @@ impl<'a> super::Record<'a> for Record<'a> {
 mod test {
 
     use std::net::Ipv4Addr;
-    use {Packet, Header};
-    use Opcode::*;
-    use ResponseCode::NoError;
-    use QueryType as QT;
-    use QueryClass as QC;
     use Class as C;
+    use Opcode::*;
+    use QueryClass as QC;
+    use QueryType as QT;
     use RData;
+    use ResponseCode::NoError;
+    use {Header, Packet};
 
     #[test]
     fn parse_response() {
@@ -48,27 +47,33 @@ mod test {
             \x00\x99L\x00\x04\xad\xf5;\x04";
 
         let packet = Packet::parse(response).unwrap();
-        assert_eq!(packet.header, Header {
-            id: 64669,
-            query: false,
-            opcode: StandardQuery,
-            authoritative: false,
-            truncated: false,
-            recursion_desired: true,
-            recursion_available: true,
-            authenticated_data: false,
-            checking_disabled: false,
-            response_code: NoError,
-            questions: 1,
-            answers: 6,
-            nameservers: 2,
-            additional: 2,
-        });
+        assert_eq!(
+            packet.header,
+            Header {
+                id: 64669,
+                query: false,
+                opcode: StandardQuery,
+                authoritative: false,
+                truncated: false,
+                recursion_desired: true,
+                recursion_available: true,
+                authenticated_data: false,
+                checking_disabled: false,
+                response_code: NoError,
+                questions: 1,
+                answers: 6,
+                nameservers: 2,
+                additional: 2,
+            }
+        );
 
         assert_eq!(packet.questions.len(), 1);
         assert_eq!(packet.questions[0].qtype, QT::A);
         assert_eq!(packet.questions[0].qclass, QC::IN);
-        assert_eq!(&packet.questions[0].qname.to_string()[..], "cdn.sstatic.net");
+        assert_eq!(
+            &packet.questions[0].qname.to_string()[..],
+            "cdn.sstatic.net"
+        );
         assert_eq!(packet.answers.len(), 6);
         assert_eq!(&packet.answers[0].name.to_string()[..], "cdn.sstatic.net");
         assert_eq!(packet.answers[0].cls, C::IN);
@@ -93,7 +98,7 @@ mod test {
             assert_eq!(packet.answers[i].ttl, 102);
             match packet.answers[i].data {
                 RData::A(addr) => {
-                    assert_eq!(addr.0, ips[i-1]);
+                    assert_eq!(addr.0, ips[i - 1]);
                 }
                 ref x => panic!("Wrong rdata {:?}", x),
             }

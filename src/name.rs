@@ -8,14 +8,14 @@ use std::ascii::AsciiExt;
 
 use byteorder::{BigEndian, ByteOrder};
 
-use {Error};
+use Error;
 
 /// The DNS name as stored in the original packet
 ///
 /// This contains just a reference to a slice that contains the data.
 /// You may turn this into a string using `.to_string()`
 #[derive(Clone, Copy)]
-pub struct Name<'a>{
+pub struct Name<'a> {
     labels: &'a [u8],
     /// This is the original buffer size. The compressed names in original
     /// are calculated in this buffer
@@ -28,7 +28,7 @@ impl<'a> Name<'a> {
     /// The `data` should be a part of `original` where name should start.
     /// The `original` is the data starting a the start of a packet, so
     /// that offsets in compressed name starts from the `original`.
-    pub fn scan(data: &'a[u8], original: &'a[u8]) -> Result<Name<'a>, Error> {
+    pub fn scan(data: &'a [u8], original: &'a [u8]) -> Result<Name<'a>, Error> {
         let mut parse_data = data;
         let mut return_pos = None;
         let mut pos = 0;
@@ -44,11 +44,11 @@ impl<'a> Name<'a> {
                 return Err(Error::UnexpectedEOF);
             }
             if byte & 0b1100_0000 == 0b1100_0000 {
-                if parse_data.len() < pos+2 {
+                if parse_data.len() < pos + 2 {
                     return Err(Error::UnexpectedEOF);
                 }
-                let off = (BigEndian::read_u16(&parse_data[pos..pos+2])
-                           & !0b1100_0000_0000_0000) as usize;
+                let off = (BigEndian::read_u16(&parse_data[pos..pos + 2]) & !0b1100_0000_0000_0000)
+                    as usize;
                 if off >= original.len() {
                     return Err(Error::UnexpectedEOF);
                 }
@@ -72,7 +72,7 @@ impl<'a> Name<'a> {
                 if parse_data.len() < end {
                     return Err(Error::UnexpectedEOF);
                 }
-                if !parse_data[pos+1..end].is_ascii() {
+                if !parse_data[pos + 1..end].is_ascii() {
                     return Err(Error::LabelIsNotAscii);
                 }
                 pos = end;
@@ -85,9 +85,15 @@ impl<'a> Name<'a> {
             byte = parse_data[pos];
         }
         if let Some(return_pos) = return_pos {
-            Ok(Name {labels: &data[..return_pos+2], original })
+            Ok(Name {
+                labels: &data[..return_pos + 2],
+                original,
+            })
         } else {
-            Ok(Name {labels: &data[..pos+1], original })
+            Ok(Name {
+                labels: &data[..pos + 1],
+                original,
+            })
         }
     }
     /// Number of bytes serialized name occupies
@@ -106,13 +112,12 @@ impl<'a> fmt::Display for Name<'a> {
             if byte == 0 {
                 return Ok(());
             } else if byte & 0b1100_0000 == 0b1100_0000 {
-                let off = (BigEndian::read_u16(&data[pos..pos+2])
-                           & !0b1100_0000_0000_0000) as usize;
+                let off =
+                    (BigEndian::read_u16(&data[pos..pos + 2]) & !0b1100_0000_0000_0000) as usize;
                 if pos != 0 {
                     fmt.write_char('.')?;
                 }
-                return fmt::Display::fmt(
-                    &Name::scan(&original[off..], original).unwrap(), fmt)
+                return fmt::Display::fmt(&Name::scan(&original[off..], original).unwrap(), fmt);
             } else if byte & 0b1100_0000 == 0 {
                 if pos != 0 {
                     fmt.write_char('.')?;
@@ -129,9 +134,7 @@ impl<'a> fmt::Display for Name<'a> {
 }
 impl<'a> fmt::Debug for Name<'a> {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        fmt.debug_tuple("Name")
-        .field(&format!("{}", self))
-        .finish()
+        fmt.debug_tuple("Name").field(&format!("{}", self)).finish()
     }
 }
 
@@ -145,8 +148,10 @@ mod test {
         // A buffer where an offset points to itself,
         // which is a bad compression pointer.
         let same_offset = vec![192, 2, 192, 2];
-        let is_match = matches!(Name::scan(&same_offset, &same_offset),
-                                Err(Error::BadPointer));
+        let is_match = matches!(
+            Name::scan(&same_offset, &same_offset),
+            Err(Error::BadPointer)
+        );
 
         assert!(is_match);
     }
@@ -156,8 +161,10 @@ mod test {
         // A buffer where the offsets points back to each other which causes
         // infinite recursion if never checked, a bad compression pointer.
         let forwards_offset = vec![192, 2, 192, 4, 192, 2];
-        let is_match = matches!(Name::scan(&forwards_offset, &forwards_offset),
-                                Err(Error::BadPointer));
+        let is_match = matches!(
+            Name::scan(&forwards_offset, &forwards_offset),
+            Err(Error::BadPointer)
+        );
 
         assert!(is_match);
     }
@@ -167,17 +174,17 @@ mod test {
         // A buffer where an offset points to itself, a bad compression pointer.
         let buf = b"\x02xx\x00\x02yy\xc0\x00\x02zz\xc0\x04";
 
-        assert_eq!(Name::scan(&buf[..], buf).unwrap().to_string(),
-            "xx");
-        assert_eq!(Name::scan(&buf[..], buf).unwrap().labels,
-            b"\x02xx\x00");
-        assert_eq!(Name::scan(&buf[4..], buf).unwrap().to_string(),
-            "yy.xx");
-        assert_eq!(Name::scan(&buf[4..], buf).unwrap().labels,
-            b"\x02yy\xc0\x00");
-        assert_eq!(Name::scan(&buf[9..], buf).unwrap().to_string(),
-            "zz.yy.xx");
-        assert_eq!(Name::scan(&buf[9..], buf).unwrap().labels,
-            b"\x02zz\xc0\x04");
+        assert_eq!(Name::scan(&buf[..], buf).unwrap().to_string(), "xx");
+        assert_eq!(Name::scan(&buf[..], buf).unwrap().labels, b"\x02xx\x00");
+        assert_eq!(Name::scan(&buf[4..], buf).unwrap().to_string(), "yy.xx");
+        assert_eq!(
+            Name::scan(&buf[4..], buf).unwrap().labels,
+            b"\x02yy\xc0\x00"
+        );
+        assert_eq!(Name::scan(&buf[9..], buf).unwrap().to_string(), "zz.yy.xx");
+        assert_eq!(
+            Name::scan(&buf[9..], buf).unwrap().labels,
+            b"\x02zz\xc0\x04"
+        );
     }
 }

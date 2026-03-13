@@ -11,7 +11,6 @@ impl<'a> ToString for Record<'a> {
 }
 
 impl<'a> super::Record<'a> for Record<'a> {
-
     const TYPE: isize = 2;
 
     fn parse(rdata: &'a [u8], original: &'a [u8]) -> super::RDataResult<'a> {
@@ -24,13 +23,13 @@ impl<'a> super::Record<'a> for Record<'a> {
 #[cfg(test)]
 mod test {
 
-    use {Packet, Header};
-    use Opcode::*;
-    use ResponseCode::NoError;
-    use QueryType as QT;
-    use QueryClass as QC;
     use Class as C;
+    use Opcode::*;
+    use QueryClass as QC;
+    use QueryType as QT;
     use RData;
+    use ResponseCode::NoError;
+    use {Header, Packet};
 
     #[test]
     fn parse_response() {
@@ -43,46 +42,49 @@ mod test {
                          \xc0\x42\x00\x02\x00\x01\x00\x01\xd5\xd3\x00\x11\
                          \x01\x67\x0c\x67\x74\x6c\x64\x2d\x73\x65\x72\x76\x65\x72\x73\
                          \xc0\x42";
-         let packet = Packet::parse(response).unwrap();
-         assert_eq!(packet.header, Header {
-             id: 19184,
-             query: false,
-             opcode: StandardQuery,
-             authoritative: false,
-             truncated: false,
-             recursion_desired: true,
-             recursion_available: true,
-             authenticated_data: false,
-             checking_disabled: false,
-             response_code: NoError,
-             questions: 1,
-             answers: 1,
-             nameservers: 1,
-             additional: 0,
-         });
-         assert_eq!(packet.questions.len(), 1);
-         assert_eq!(packet.questions[0].qtype, QT::A);
-         assert_eq!(packet.questions[0].qclass, QC::IN);
-         assert_eq!(&packet.questions[0].qname.to_string()[..], "www.skype.com");
-         assert_eq!(packet.answers.len(), 1);
-         assert_eq!(&packet.answers[0].name.to_string()[..], "www.skype.com");
-         assert_eq!(packet.answers[0].cls, C::IN);
-         assert_eq!(packet.answers[0].ttl, 3600);
-         match packet.answers[0].data {
-             RData::CNAME(cname) => {
-                 assert_eq!(&cname.0.to_string()[..], "livecms.trafficmanager.net");
-             }
-             ref x => panic!("Wrong rdata {:?}", x),
-         }
-         assert_eq!(packet.nameservers.len(), 1);
-         assert_eq!(&packet.nameservers[0].name.to_string()[..], "net");
-         assert_eq!(packet.nameservers[0].cls, C::IN);
-         assert_eq!(packet.nameservers[0].ttl, 120275);
-         match packet.nameservers[0].data {
-             RData::NS(ns) => {
-                 assert_eq!(&ns.0.to_string()[..], "g.gtld-servers.net");
-             }
-             ref x => panic!("Wrong rdata {:?}", x),
-         }
-     }
+        let packet = Packet::parse(response).unwrap();
+        assert_eq!(
+            packet.header,
+            Header {
+                id: 19184,
+                query: false,
+                opcode: StandardQuery,
+                authoritative: false,
+                truncated: false,
+                recursion_desired: true,
+                recursion_available: true,
+                authenticated_data: false,
+                checking_disabled: false,
+                response_code: NoError,
+                questions: 1,
+                answers: 1,
+                nameservers: 1,
+                additional: 0,
+            }
+        );
+        assert_eq!(packet.questions.len(), 1);
+        assert_eq!(packet.questions[0].qtype, QT::A);
+        assert_eq!(packet.questions[0].qclass, QC::IN);
+        assert_eq!(&packet.questions[0].qname.to_string()[..], "www.skype.com");
+        assert_eq!(packet.answers.len(), 1);
+        assert_eq!(&packet.answers[0].name.to_string()[..], "www.skype.com");
+        assert_eq!(packet.answers[0].cls, C::IN);
+        assert_eq!(packet.answers[0].ttl, 3600);
+        match packet.answers[0].data {
+            RData::CNAME(cname) => {
+                assert_eq!(&cname.0.to_string()[..], "livecms.trafficmanager.net");
+            }
+            ref x => panic!("Wrong rdata {:?}", x),
+        }
+        assert_eq!(packet.nameservers.len(), 1);
+        assert_eq!(&packet.nameservers[0].name.to_string()[..], "net");
+        assert_eq!(packet.nameservers[0].cls, C::IN);
+        assert_eq!(packet.nameservers[0].ttl, 120275);
+        match packet.nameservers[0].data {
+            RData::NS(ns) => {
+                assert_eq!(&ns.0.to_string()[..], "g.gtld-servers.net");
+            }
+            ref x => panic!("Wrong rdata {:?}", x),
+        }
+    }
 }

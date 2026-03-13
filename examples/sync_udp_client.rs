@@ -5,17 +5,15 @@ use std::error::Error;
 use std::net::UdpSocket;
 use std::process;
 
-
-use dns_parser::{Builder, Packet, RData, ResponseCode};
 use dns_parser::rdata::a::Record;
-use dns_parser::{QueryType, QueryClass};
-
+use dns_parser::{Builder, Packet, RData, ResponseCode};
+use dns_parser::{QueryClass, QueryType};
 
 fn main() {
     let mut code = 0;
     for name in env::args().skip(1) {
         match resolve(&name) {
-            Ok(()) => {},
+            Ok(()) => {}
             Err(e) => {
                 eprintln!("Error resolving {:?}: {}", name, e);
                 code = 1;
