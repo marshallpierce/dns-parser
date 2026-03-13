@@ -80,7 +80,7 @@ mod test {
             ref x => panic!("Wrong rdata {:?}", x),
         }
 
-        let ips = vec![
+        let ips = [
             Ipv4Addr::new(104, 16, 103, 204),
             Ipv4Addr::new(104, 16, 107, 204),
             Ipv4Addr::new(104, 16, 104, 204),

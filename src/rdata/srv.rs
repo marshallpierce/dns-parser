@@ -29,7 +29,7 @@ impl<'a> super::Record<'a> for Record<'a> {
 
 #[cfg(test)]
 mod test {
-
+    use itertools::Itertools;
     use {Packet, Header};
     use Opcode::*;
     use ResponseCode::NoError;
@@ -76,24 +76,24 @@ mod test {
         assert_eq!(&packet.questions[0].qname.to_string()[..],
             "_xmpp-server._tcp.gmail.com");
         assert_eq!(packet.answers.len(), 5);
-        let items = vec![
+        let items = [
             (5, 0, 5269, "xmpp-server.l.google.com"),
             (20, 0, 5269, "alt3.xmpp-server.l.google.com"),
             (20, 0, 5269, "alt1.xmpp-server.l.google.com"),
             (20, 0, 5269, "alt2.xmpp-server.l.google.com"),
             (20, 0, 5269, "alt4.xmpp-server.l.google.com"),
         ];
-        for i in 0..5 {
-            assert_eq!(&packet.answers[i].name.to_string()[..],
+        for (answer, item) in packet.answers.iter().zip_eq(items.iter()) {
+            assert_eq!(&answer.name.to_string()[..],
                 "_xmpp-server._tcp.gmail.com");
-            assert_eq!(packet.answers[i].cls, C::IN);
-            assert_eq!(packet.answers[i].ttl, 900);
-            match *&packet.answers[i].data {
+            assert_eq!(answer.cls, C::IN);
+            assert_eq!(answer.ttl, 900);
+            match answer.data {
                 RData::SRV(Record { priority, weight, port, target }) => {
-                    assert_eq!(priority, items[i].0);
-                    assert_eq!(weight, items[i].1);
-                    assert_eq!(port, items[i].2);
-                    assert_eq!(target.to_string(), (items[i].3).to_string());
+                    assert_eq!(priority, item.0);
+                    assert_eq!(weight, item.1);
+                    assert_eq!(port, item.2);
+                    assert_eq!(target.to_string(), item.3.to_string());
                 }
                 ref x => panic!("Wrong rdata {:?}", x),
             }

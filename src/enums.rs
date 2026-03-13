@@ -167,10 +167,10 @@ impl From<u16> for Opcode {
         }
     }
 }
-impl Into<u16> for Opcode {
-    fn into(self) -> u16 {
+impl From<Opcode> for u16 {
+    fn from(value: Opcode) -> u16 {
         use self::Opcode::*;
-        match self {
+        match value {
             StandardQuery => 0,
             InverseQuery => 1,
             ServerStatusRequest => 2,
@@ -189,15 +189,15 @@ impl From<u8> for ResponseCode {
             3       => NameError,
             4       => NotImplemented,
             5       => Refused,
-            6...15  => Reserved(code),
+            6..=15  => Reserved(code),
             x       => panic!("Invalid response code {}", x),
         }
     }
 }
-impl Into<u8> for ResponseCode {
-    fn into(self) -> u8 {
+impl From<ResponseCode> for u8 {
+    fn from(value: ResponseCode) -> u8 {
         use self::ResponseCode::*;
-        match self {
+        match value {
             NoError         => 0,
             FormatError     => 1,
             ServerFailure   => 2,

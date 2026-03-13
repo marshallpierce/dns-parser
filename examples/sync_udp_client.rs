@@ -25,7 +25,7 @@ fn main() {
     process::exit(code);
 }
 
-fn resolve(name: &str) -> Result<(), Box<Error>> {
+fn resolve(name: &str) -> Result<(), Box<dyn Error>> {
     let sock = UdpSocket::bind("127.0.0.1:0")?;
     sock.connect("127.0.0.1:53")?;
     let mut builder = Builder::new_query(1, true);
@@ -38,15 +38,12 @@ fn resolve(name: &str) -> Result<(), Box<Error>> {
     if pkt.header.response_code != ResponseCode::NoError {
         return Err(pkt.header.response_code.into());
     }
-    if pkt.answers.len() == 0 {
+    if pkt.answers.is_empty() {
         return Err("No records received".into());
     }
     for ans in pkt.answers {
-        match ans.data {
-            RData::A(Record(ip)) => {
-                println!("{}", ip);
-            }
-            _ => {} // ignore
+        if let RData::A(Record(ip)) = ans.data {
+            println!("{}", ip);
         }
     }
     Ok(())

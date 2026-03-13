@@ -25,7 +25,7 @@ impl<'a> super::Record<'a> for Record<'a> {
 
 #[cfg(test)]
 mod test {
-
+    use itertools::Itertools;
     use {Packet, Header};
     use Opcode::*;
     use ResponseCode::NoError;
@@ -68,22 +68,22 @@ mod test {
         assert_eq!(&packet.questions[0].qname.to_string()[..],
         "gmail.com");
         assert_eq!(packet.answers.len(), 5);
-        let items = vec![
+        let items = [
             ( 5, "gmail-smtp-in.l.google.com"),
             (10, "alt1.gmail-smtp-in.l.google.com"),
             (40, "alt4.gmail-smtp-in.l.google.com"),
             (20, "alt2.gmail-smtp-in.l.google.com"),
             (30, "alt3.gmail-smtp-in.l.google.com"),
         ];
-        for i in 0..5 {
-            assert_eq!(&packet.answers[i].name.to_string()[..],
+        for (answer, item) in packet.answers.iter().zip_eq(items.iter()) {
+            assert_eq!(&answer.name.to_string()[..],
             "gmail.com");
-            assert_eq!(packet.answers[i].cls, C::IN);
-            assert_eq!(packet.answers[i].ttl, 1148);
-            match *&packet.answers[i].data {
+            assert_eq!(answer.cls, C::IN);
+            assert_eq!(answer.ttl, 1148);
+            match answer.data {
                 RData::MX( Record { preference, exchange }) => {
-                    assert_eq!(preference, items[i].0);
-                    assert_eq!(exchange.to_string(), (items[i].1).to_string());
+                    assert_eq!(preference, item.0);
+                    assert_eq!(exchange.to_string(), item.1.to_string());
                 }
                 ref x => panic!("Wrong rdata {:?}", x),
             }
