@@ -1,5 +1,3 @@
-use std::i32;
-
 use byteorder::{BigEndian, ByteOrder};
 
 use rdata::opt::Record as Opt;
@@ -11,7 +9,7 @@ const OPT_RR_START: [u8; 3] = [0, 0, 41];
 impl<'a> Packet<'a> {
     /// Parse a full DNS Packet and return a structure that has all the
     /// data borrowed from the passed buffer.
-    pub fn parse(data: &[u8]) -> Result<Packet, Error> {
+    pub fn parse(data: &[u8]) -> Result<Packet<'_>, Error> {
         let header = Header::parse(data)?;
         let mut offset = Header::size();
         let mut questions = Vec::with_capacity(header.questions as usize);
@@ -194,7 +192,10 @@ mod test {
         assert_eq!(packet.questions.len(), 1);
         assert_eq!(packet.questions[0].qtype, QT::A);
         assert_eq!(packet.questions[0].qclass, QC::IN);
-        assert_eq!(&packet.questions[0].qname.to_string()[..], "example.com");
+        assert_eq!(
+            &packet.questions[0].qname.as_str_name().unwrap().to_string()[..],
+            "example.com"
+        );
         assert_eq!(packet.answers.len(), 0);
     }
 
@@ -227,9 +228,15 @@ mod test {
         assert_eq!(packet.questions.len(), 1);
         assert_eq!(packet.questions[0].qtype, QT::A);
         assert_eq!(packet.questions[0].qclass, QC::IN);
-        assert_eq!(&packet.questions[0].qname.to_string()[..], "example.com");
+        assert_eq!(
+            &packet.questions[0].qname.as_str_name().unwrap().to_string()[..],
+            "example.com"
+        );
         assert_eq!(packet.answers.len(), 1);
-        assert_eq!(&packet.answers[0].name.to_string()[..], "example.com");
+        assert_eq!(
+            &packet.answers[0].name.as_str_name().unwrap().to_string()[..],
+            "example.com"
+        );
         assert!(!packet.answers[0].multicast_unique);
         assert_eq!(packet.answers[0].cls, C::IN);
         assert_eq!(packet.answers[0].ttl, 1272);
@@ -290,30 +297,49 @@ mod test {
         assert_eq!(packet.questions.len(), 1);
         assert_eq!(packet.questions[0].qtype, QT::A);
         assert_eq!(packet.questions[0].qclass, QC::IN);
-        assert_eq!(&packet.questions[0].qname.to_string()[..], "www.skype.com");
+        assert_eq!(
+            &packet.questions[0].qname.as_str_name().unwrap().to_string()[..],
+            "www.skype.com"
+        );
         assert_eq!(packet.answers.len(), 1);
-        assert_eq!(&packet.answers[0].name.to_string()[..], "www.skype.com");
+        assert_eq!(
+            &packet.answers[0].name.as_str_name().unwrap().to_string()[..],
+            "www.skype.com"
+        );
         assert_eq!(packet.answers[0].cls, C::IN);
         assert_eq!(packet.answers[0].ttl, 3600);
         match packet.answers[0].data {
             RData::CNAME(cname) => {
-                assert_eq!(&cname.0.to_string()[..], "livecms.trafficmanager.net");
+                assert_eq!(
+                    &cname.0.as_str_name().unwrap().to_string()[..],
+                    "livecms.trafficmanager.net"
+                );
             }
             ref x => panic!("Wrong rdata {:?}", x),
         }
         assert_eq!(packet.nameservers.len(), 1);
-        assert_eq!(&packet.nameservers[0].name.to_string()[..], "net");
+        assert_eq!(
+            &packet.nameservers[0]
+                .name
+                .as_str_name()
+                .unwrap()
+                .to_string()[..],
+            "net"
+        );
         assert_eq!(packet.nameservers[0].cls, C::IN);
         assert_eq!(packet.nameservers[0].ttl, 120275);
         match packet.nameservers[0].data {
             RData::NS(ns) => {
-                assert_eq!(&ns.0.to_string()[..], "g.gtld-servers.net");
+                assert_eq!(
+                    &ns.0.as_str_name().unwrap().to_string()[..],
+                    "g.gtld-servers.net"
+                );
             }
             ref x => panic!("Wrong rdata {:?}", x),
         }
         assert_eq!(packet.additional.len(), 1);
         assert_eq!(
-            &packet.additional[0].name.to_string()[..],
+            &packet.additional[0].name.as_str_name().unwrap().to_string()[..],
             "a.gtld-servers.net"
         );
         assert_eq!(packet.additional[0].cls, C::IN);
@@ -361,7 +387,10 @@ mod test {
         assert_eq!(packet.questions.len(), 1);
         assert_eq!(packet.questions[0].qtype, QT::A);
         assert_eq!(packet.questions[0].qclass, QC::IN);
-        assert_eq!(&packet.questions[0].qname.to_string()[..], "google.com");
+        assert_eq!(
+            &packet.questions[0].qname.as_str_name().unwrap().to_string()[..],
+            "google.com"
+        );
         assert_eq!(packet.answers.len(), 6);
         let ips = [
             Ipv4Addr::new(64, 233, 164, 100),
@@ -372,7 +401,10 @@ mod test {
             Ipv4Addr::new(64, 233, 164, 138),
         ];
         for (answer, ip) in packet.answers.iter().zip_eq(ips.iter()) {
-            assert_eq!(&answer.name.to_string()[..], "google.com");
+            assert_eq!(
+                &answer.name.as_str_name().unwrap().to_string()[..],
+                "google.com"
+            );
             assert_eq!(answer.cls, C::IN);
             assert_eq!(answer.ttl, 239);
             match answer.data {
@@ -413,7 +445,7 @@ mod test {
         assert_eq!(packet.questions[0].qclass, QC::IN);
         assert!(!packet.questions[0].prefer_unicast);
         assert_eq!(
-            &packet.questions[0].qname.to_string()[..],
+            &packet.questions[0].qname.as_str_name().unwrap().to_string()[..],
             "_xmpp-server._tcp.gmail.com"
         );
         assert_eq!(packet.answers.len(), 0);
@@ -459,7 +491,10 @@ mod test {
         assert_eq!(packet.questions.len(), 1);
         assert_eq!(packet.questions[0].qtype, QT::A);
         assert_eq!(packet.questions[0].qclass, QC::IN);
-        assert_eq!(&packet.questions[0].qname.to_string()[..], "google.com");
+        assert_eq!(
+            &packet.questions[0].qname.as_str_name().unwrap().to_string()[..],
+            "google.com"
+        );
         assert_eq!(packet.answers.len(), 0);
         match packet.opt {
             Some(opt) => {

@@ -67,7 +67,10 @@ mod test {
         assert_eq!(packet.questions.len(), 1);
         assert_eq!(packet.questions[0].qtype, QT::MX);
         assert_eq!(packet.questions[0].qclass, QC::IN);
-        assert_eq!(&packet.questions[0].qname.to_string()[..], "gmail.com");
+        assert_eq!(
+            &packet.questions[0].qname.as_str_name().unwrap().to_string()[..],
+            "gmail.com"
+        );
         assert_eq!(packet.answers.len(), 5);
         let items = [
             (5, "gmail-smtp-in.l.google.com"),
@@ -77,7 +80,10 @@ mod test {
             (30, "alt3.gmail-smtp-in.l.google.com"),
         ];
         for (answer, item) in packet.answers.iter().zip_eq(items.iter()) {
-            assert_eq!(&answer.name.to_string()[..], "gmail.com");
+            assert_eq!(
+                &answer.name.as_str_name().unwrap().to_string()[..],
+                "gmail.com"
+            );
             assert_eq!(answer.cls, C::IN);
             assert_eq!(answer.ttl, 1148);
             match answer.data {
@@ -86,7 +92,10 @@ mod test {
                     exchange,
                 }) => {
                     assert_eq!(preference, item.0);
-                    assert_eq!(exchange.to_string(), item.1.to_string());
+                    assert_eq!(
+                        exchange.as_str_name().unwrap().to_string(),
+                        item.1.to_string()
+                    );
                 }
                 ref x => panic!("Wrong rdata {:?}", x),
             }

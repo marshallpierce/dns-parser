@@ -80,20 +80,33 @@ mod test {
         assert_eq!(packet.questions[0].qtype, QT::A);
         assert_eq!(packet.questions[0].qclass, QC::IN);
         assert_eq!(
-            &packet.questions[0].qname.to_string()[..],
+            &packet.questions[0].qname.as_str_name().unwrap().to_string()[..],
             "dlkfjkdjdslfkj.youtube.com"
         );
         assert_eq!(packet.answers.len(), 0);
 
         assert_eq!(packet.nameservers.len(), 1);
-        assert_eq!(&packet.nameservers[0].name.to_string()[..], "youtube.com");
+        assert_eq!(
+            &packet.nameservers[0]
+                .name
+                .as_str_name()
+                .unwrap()
+                .to_string()[..],
+            "youtube.com"
+        );
         assert_eq!(packet.nameservers[0].cls, C::IN);
         assert!(!packet.nameservers[0].multicast_unique);
         assert_eq!(packet.nameservers[0].ttl, 10800);
         match packet.nameservers[0].data {
             RData::SOA(ref soa_rec) => {
-                assert_eq!(&soa_rec.primary_ns.to_string()[..], "youtube.com");
-                assert_eq!(&soa_rec.mailbox.to_string()[..], "admin.youtube.com");
+                assert_eq!(
+                    &soa_rec.primary_ns.as_str_name().unwrap().to_string()[..],
+                    "youtube.com"
+                );
+                assert_eq!(
+                    &soa_rec.mailbox.as_str_name().unwrap().to_string()[..],
+                    "admin.youtube.com"
+                );
                 assert_eq!(soa_rec.serial, 2012031603);
                 assert_eq!(soa_rec.refresh, 20864);
                 assert_eq!(soa_rec.retry, 3600);

@@ -3,13 +3,6 @@ use Name;
 #[derive(Debug, Clone, Copy)]
 pub struct Record<'a>(pub Name<'a>);
 
-impl<'a> ToString for Record<'a> {
-    #[inline]
-    fn to_string(&self) -> String {
-        self.0.to_string()
-    }
-}
-
 impl<'a> super::Record<'a> for Record<'a> {
     const TYPE: isize = 2;
 
@@ -65,24 +58,43 @@ mod test {
         assert_eq!(packet.questions.len(), 1);
         assert_eq!(packet.questions[0].qtype, QT::A);
         assert_eq!(packet.questions[0].qclass, QC::IN);
-        assert_eq!(&packet.questions[0].qname.to_string()[..], "www.skype.com");
+        assert_eq!(
+            &packet.questions[0].qname.as_str_name().unwrap().to_string()[..],
+            "www.skype.com"
+        );
         assert_eq!(packet.answers.len(), 1);
-        assert_eq!(&packet.answers[0].name.to_string()[..], "www.skype.com");
+        assert_eq!(
+            &packet.answers[0].name.as_str_name().unwrap().to_string()[..],
+            "www.skype.com"
+        );
         assert_eq!(packet.answers[0].cls, C::IN);
         assert_eq!(packet.answers[0].ttl, 3600);
         match packet.answers[0].data {
             RData::CNAME(cname) => {
-                assert_eq!(&cname.0.to_string()[..], "livecms.trafficmanager.net");
+                assert_eq!(
+                    &cname.0.as_str_name().unwrap().to_string()[..],
+                    "livecms.trafficmanager.net"
+                );
             }
             ref x => panic!("Wrong rdata {:?}", x),
         }
         assert_eq!(packet.nameservers.len(), 1);
-        assert_eq!(&packet.nameservers[0].name.to_string()[..], "net");
+        assert_eq!(
+            &packet.nameservers[0]
+                .name
+                .as_str_name()
+                .unwrap()
+                .to_string()[..],
+            "net"
+        );
         assert_eq!(packet.nameservers[0].cls, C::IN);
         assert_eq!(packet.nameservers[0].ttl, 120275);
         match packet.nameservers[0].data {
             RData::NS(ns) => {
-                assert_eq!(&ns.0.to_string()[..], "g.gtld-servers.net");
+                assert_eq!(
+                    &ns.0.as_str_name().unwrap().to_string()[..],
+                    "g.gtld-servers.net"
+                );
             }
             ref x => panic!("Wrong rdata {:?}", x),
         }

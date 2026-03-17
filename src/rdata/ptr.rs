@@ -3,13 +3,6 @@ use Name;
 #[derive(Debug, Clone, Copy)]
 pub struct Record<'a>(pub Name<'a>);
 
-impl<'a> ToString for Record<'a> {
-    #[inline]
-    fn to_string(&self) -> String {
-        self.0.to_string()
-    }
-}
-
 impl<'a> super::Record<'a> for Record<'a> {
     const TYPE: isize = 12;
 
@@ -62,19 +55,22 @@ mod test {
         assert_eq!(packet.questions[0].qtype, QT::PTR);
         assert_eq!(packet.questions[0].qclass, QC::IN);
         assert_eq!(
-            &packet.questions[0].qname.to_string()[..],
+            &packet.questions[0].qname.as_str_name().unwrap().to_string()[..],
             "69.93.75.72.in-addr.arpa"
         );
         assert_eq!(packet.answers.len(), 1);
         assert_eq!(
-            &packet.answers[0].name.to_string()[..],
+            &packet.answers[0].name.as_str_name().unwrap().to_string()[..],
             "69.93.75.72.in-addr.arpa"
         );
         assert_eq!(packet.answers[0].cls, C::IN);
         assert_eq!(packet.answers[0].ttl, 86400);
         match packet.answers[0].data {
             RData::PTR(name) => {
-                assert_eq!(&name.0.to_string()[..], "pool-72-75-93-69.verizon.net");
+                assert_eq!(
+                    &name.0.as_str_name().unwrap().to_string()[..],
+                    "pool-72-75-93-69.verizon.net"
+                );
             }
             ref x => panic!("Wrong rdata {:?}", x),
         }

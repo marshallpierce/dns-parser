@@ -70,9 +70,15 @@ mod test {
         assert_eq!(packet.questions.len(), 1);
         assert_eq!(packet.questions[0].qtype, QT::AAAA);
         assert_eq!(packet.questions[0].qclass, QC::IN);
-        assert_eq!(&packet.questions[0].qname.to_string()[..], "google.com");
+        assert_eq!(
+            &packet.questions[0].qname.as_str_name().unwrap().to_string()[..],
+            "google.com"
+        );
         assert_eq!(packet.answers.len(), 1);
-        assert_eq!(&packet.answers[0].name.to_string()[..], "google.com");
+        assert_eq!(
+            &packet.answers[0].name.as_str_name().unwrap().to_string()[..],
+            "google.com"
+        );
         assert_eq!(packet.answers[0].cls, C::IN);
         assert_eq!(packet.answers[0].ttl, 139);
         match packet.answers[0].data {

@@ -16,9 +16,6 @@
 #![warn(missing_debug_implementations)]
 
 extern crate byteorder;
-#[cfg(test)]
-#[macro_use]
-extern crate matches;
 #[macro_use(quick_error)]
 extern crate quick_error;
 #[cfg(feature = "with-serde")]
@@ -41,6 +38,6 @@ pub use builder::Builder;
 pub use enums::{Class, Opcode, QueryClass, QueryType, ResponseCode, Type};
 pub use error::Error;
 pub use header::Header;
-pub use name::Name;
+pub use name::{Name, StrName};
 pub use rdata::RData;
 pub use structs::{Packet, Question, ResourceRecord};

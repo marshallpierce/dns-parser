@@ -3,13 +3,6 @@ use Name;
 #[derive(Debug, Clone, Copy)]
 pub struct Record<'a>(pub Name<'a>);
 
-impl<'a> ToString for Record<'a> {
-    #[inline]
-    fn to_string(&self) -> String {
-        self.0.to_string()
-    }
-}
-
 impl<'a> super::Record<'a> for Record<'a> {
     const TYPE: isize = 5;
 
@@ -71,16 +64,19 @@ mod test {
         assert_eq!(packet.questions[0].qtype, QT::A);
         assert_eq!(packet.questions[0].qclass, QC::IN);
         assert_eq!(
-            &packet.questions[0].qname.to_string()[..],
+            &packet.questions[0].qname.as_str_name().unwrap().to_string()[..],
             "cdn.sstatic.net"
         );
         assert_eq!(packet.answers.len(), 6);
-        assert_eq!(&packet.answers[0].name.to_string()[..], "cdn.sstatic.net");
+        assert_eq!(
+            &packet.answers[0].name.as_str_name().unwrap().to_string()[..],
+            "cdn.sstatic.net"
+        );
         assert_eq!(packet.answers[0].cls, C::IN);
         assert_eq!(packet.answers[0].ttl, 102);
         match packet.answers[0].data {
             RData::CNAME(cname) => {
-                assert_eq!(&cname.0.to_string(), "sstatic.net");
+                assert_eq!(&cname.0.as_str_name().unwrap().to_string(), "sstatic.net");
             }
             ref x => panic!("Wrong rdata {:?}", x),
         }
@@ -93,7 +89,10 @@ mod test {
             Ipv4Addr::new(104, 16, 105, 204),
         ];
         for i in 1..6 {
-            assert_eq!(&packet.answers[i].name.to_string()[..], "sstatic.net");
+            assert_eq!(
+                &packet.answers[i].name.as_str_name().unwrap().to_string()[..],
+                "sstatic.net"
+            );
             assert_eq!(packet.answers[i].cls, C::IN);
             assert_eq!(packet.answers[i].ttl, 102);
             match packet.answers[i].data {

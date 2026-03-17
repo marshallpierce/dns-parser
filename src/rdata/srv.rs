@@ -76,7 +76,7 @@ mod test {
         assert_eq!(packet.questions[0].qtype, QT::SRV);
         assert_eq!(packet.questions[0].qclass, QC::IN);
         assert_eq!(
-            &packet.questions[0].qname.to_string()[..],
+            &packet.questions[0].qname.as_str_name().unwrap().to_string()[..],
             "_xmpp-server._tcp.gmail.com"
         );
         assert_eq!(packet.answers.len(), 5);
@@ -88,7 +88,10 @@ mod test {
             (20, 0, 5269, "alt4.xmpp-server.l.google.com"),
         ];
         for (answer, item) in packet.answers.iter().zip_eq(items.iter()) {
-            assert_eq!(&answer.name.to_string()[..], "_xmpp-server._tcp.gmail.com");
+            assert_eq!(
+                &answer.name.as_str_name().unwrap().to_string()[..],
+                "_xmpp-server._tcp.gmail.com"
+            );
             assert_eq!(answer.cls, C::IN);
             assert_eq!(answer.ttl, 900);
             match answer.data {
@@ -101,7 +104,10 @@ mod test {
                     assert_eq!(priority, item.0);
                     assert_eq!(weight, item.1);
                     assert_eq!(port, item.2);
-                    assert_eq!(target.to_string(), item.3.to_string());
+                    assert_eq!(
+                        target.as_str_name().unwrap().to_string(),
+                        item.3.to_string()
+                    );
                 }
                 ref x => panic!("Wrong rdata {:?}", x),
             }

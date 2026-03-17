@@ -2,7 +2,7 @@ use std::str::Utf8Error;
 
 quick_error! {
     /// Error parsing DNS packet
-    #[derive(Debug)]
+    #[derive(Debug, PartialEq)]
     pub enum Error {
         /// Invalid compression pointer not pointing backwards
         /// when parsing label
@@ -30,6 +30,10 @@ quick_error! {
         UnknownLabelFormat {
             description("label in domain name has unknown label format")
         }
+        /// Name length is invalid
+        InvalidNameLen {
+            description("name length in domain name is invalid")
+        }
         /// Query type code is invalid
         InvalidQueryType(code: u16) {
             description("query type code is invalid")
@@ -49,10 +53,6 @@ quick_error! {
         InvalidClass(code: u16) {
             description("class code is invalid")
             display("class {} is invalid", code)
-        }
-        /// Invalid characters encountered while reading label
-        LabelIsNotAscii {
-            description("invalid characters encountered while reading label")
         }
         /// Invalid characters encountered while reading TXT
         TxtDataIsNotUTF8(error: Utf8Error) {
